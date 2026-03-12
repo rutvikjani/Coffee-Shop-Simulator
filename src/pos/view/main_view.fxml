@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.layout.Priority?>
+
+<BorderPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="pos.controller.MainController">
+
+    <top>
+        <HBox alignment="CENTER">
+            <padding><Insets top="15" bottom="15"/></padding>
+            <children>
+                <Label text="Moonbucks Coffee"
+                       style="-fx-font-size: 28px; -fx-font-weight: bold;"/>
+            </children>
+        </HBox>
+    </top>
+
+    <left>
+        <VBox spacing="10">
+            <padding><Insets top="0" right="10" bottom="10" left="10"/></padding>
+
+            <children>
+                <Label text="Menu Items" style="-fx-font-size: 14px; -fx-font-weight: bold;"/>
+                <HBox spacing="5">
+                    <children>
+                        <Button fx:id="btnAll" text="All"/>
+                        <Button fx:id="btnFood" text="Food"/>
+                        <Button fx:id="btnBeverages" text="Beverages"/>
+                        <Button fx:id="btnOther" text="Other"/>
+                    </children>
+                </HBox>
+
+                <TableView fx:id="menuTable" prefWidth="530">
+                    <columns>
+                        <TableColumn fx:id="colMenuId" text="ID" prefWidth="80"/>
+                        <TableColumn fx:id="colMenuName" text="Name" prefWidth="140"/>
+                        <TableColumn fx:id="colMenuDescription" text="Description" prefWidth="180"/>
+                        <TableColumn fx:id="colMenuCategory" text="Category" prefWidth="80"/>
+                        <TableColumn fx:id="colMenuPrice" text="Price" prefWidth="80"/>
+                    </columns>
+                </TableView>
+            </children>
+        </VBox>
+    </left>
+
+    <center>
+        <VBox spacing="10">
+            <padding><Insets top="10" right="10" bottom="10" left="10"/></padding>
+
+            <HBox spacing="20">
+                <children>
+
+                    <VBox spacing="10" prefWidth="350">
+                        <children>
+                            <Label text="Current Order" style="-fx-font-size: 14px; -fx-font-weight: bold;"/>
+
+                            <TableView fx:id="orderTable" prefHeight="200">
+                                <columns>
+                                    <TableColumn fx:id="colOrderItem" text="Item" prefWidth="150"/>
+                                    <TableColumn fx:id="colOrderQty" text="Qty" prefWidth="50"/>
+                                    <TableColumn fx:id="colOrderLineTotal" text="Line Total" prefWidth="80"/>
+                                </columns>
+                            </TableView>
+
+                            <Button fx:id="btnRemoveItem" text="Remove Selected Item"/>
+                        </children>
+                    </VBox>
+
+                    <VBox spacing="10" prefWidth="250">
+                        <children>
+                            <Label text="Customer ID"/>
+                            <TextField fx:id="customerIdField"/>
+
+                            <Separator/>
+
+                            <Label text="Bill Summary" style="-fx-font-size: 14px; -fx-font-weight: bold;"/>
+                            <Label fx:id="subtotalLabel" text="Subtotal: £0.00"/>
+                            <Label fx:id="discountLabel" text="Discount: £0.00"/>
+                            <Label fx:id="totalLabel" text="Total: £0.00"/>
+
+                            <Label fx:id="discountBadge"
+                                   text="Discount Applied"
+                                   visible="false"
+                                   style="-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-padding: 4 8; -fx-background-radius: 5;"/>
+
+                            <Separator/>
+
+                            <Button fx:id="btnClearOrder" text="Clear Order" maxWidth="Infinity"/>
+                            <Button fx:id="btnConfirmOrder" text="Confirm Order" maxWidth="Infinity"/>
+                        </children>
+                    </VBox>
+
+                </children>
+            </HBox>
+
+            <Separator/>
+
+            <Label text="Existing Orders" style="-fx-font-size: 14px; -fx-font-weight: bold;"/>
+
+            <TableView fx:id="existingOrdersTable"
+                       prefHeight="300"
+                       maxWidth="Infinity"
+                       VBox.vgrow="ALWAYS">
+                <columns>
+                    <TableColumn fx:id="colExistingOrderNo" text="Order No" prefWidth="60"/>
+                    <TableColumn fx:id="colExistingCustomerId" text="CID" prefWidth="60"/>
+                    <TableColumn fx:id="colExistingTimestamp" text="Timestamp" prefWidth="80"/>
+                    <TableColumn fx:id="colExistingItemIds" text="Item IDs" prefWidth="220"/>
+                </columns>
+            </TableView>
+
+        </VBox>
+    </center>
+
+    <bottom>
+        <HBox>
+            <padding><Insets top="10" right="10" bottom="10" left="10"/></padding>
+            <children>
+                <Label fx:id="statusLabel" text="Ready"/>
+            </children>
+        </HBox>
+    </bottom>
+
+</BorderPane>
