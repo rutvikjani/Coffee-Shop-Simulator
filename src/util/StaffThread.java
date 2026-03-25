@@ -3,20 +3,22 @@ package util;
 import pos.model.Customer;
 import pos.model.Staff;
 import java.util.Random;
-import util.LoggerService;
 
 public class StaffThread implements Runnable {
 
     private final Staff staff;
     private final QueueService queueService;
     private final LoggerService logger;
+    private final ReportService reportService;
     private final Runnable onStaffUpdate;
     private volatile boolean running = true;
 
-    public StaffThread(Staff staff, QueueService queueService, LoggerService logger, Runnable onStaffUpdate) {
+    public StaffThread(Staff staff, QueueService queueService, LoggerService logger,
+                       ReportService reportService, Runnable onStaffUpdate) {
         this.staff = staff;
         this.queueService = queueService;
         this.logger = logger;
+        this.reportService = reportService;
         this.onStaffUpdate = onStaffUpdate;
     }
 
@@ -24,17 +26,14 @@ public class StaffThread implements Runnable {
     public void run() {
         while (running) {
             try {
-                if (queueService.isEmpty() ) {
-                    Thread.sleep(500);
-                    continue;
-                }
-
+                // blocks here until a customer is available — no busy-waiting
                 Customer customer = queueService.getNextCustomer();
                 if (customer == null) continue;
 
                 customer.setStatus("Being Served");
                 staff.setStatus("Serving");
-                staff.setCurrentOrder("Customer " + customer.getCustomerId());
+                staff.setCurrentOrder("Customer " + customer.getCustomerId()
+                        + " → " + String.join(", ", customer.getItemIds()));
                 logger.log(staff.getName() + " is serving Customer " + customer.getCustomerId());
                 onStaffUpdate.run();
 
@@ -45,6 +44,7 @@ public class StaffThread implements Runnable {
                 staff.setStatus("Idle");
                 staff.setCurrentOrder("No order");
                 logger.log(staff.getName() + " completed order for Customer " + customer.getCustomerId());
+                reportService.recordOrder(customer);
                 onStaffUpdate.run();
 
             } catch (InterruptedException e) {
@@ -63,7 +63,7 @@ public class StaffThread implements Runnable {
             } else if (itemId.startsWith("FOOD")) {
                 totalTime += (6 + random.nextInt(5)) * 1000;
             } else {
-                totalTime += (1 + random.nextInt(2)) * 1000;
+                totalTime += (1 + random.nextInt(3)) * 1000;
             }
         }
         return totalTime;

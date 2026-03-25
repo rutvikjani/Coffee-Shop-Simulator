@@ -20,7 +20,7 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.TreeMap;
 
-public class MainController {
+public class MainController implements util.SimulationObserver {
 
     @FXML private Button btnAll;
     @FXML private Button btnBeverages;
@@ -483,7 +483,7 @@ public class MainController {
         popup.setScene(new Scene(layout, 500, 400));
         popup.showAndWait();
     }
-    
+
     public void showSimulationReport(String report) {
         Stage popup = new Stage();
         popup.initModality(Modality.APPLICATION_MODAL);
@@ -504,5 +504,25 @@ public class MainController {
 
         popup.setScene(new Scene(layout, 500, 400));
         popup.showAndWait();
+    }
+
+    @Override
+    public void onStaffUpdated(int staffId, String status, String order) {
+        updateStaffUI(staffId, status, order);
+    }
+
+    @Override
+    public void onQueueUpdated() {
+        // queue table updates automatically via ObservableList binding
+    }
+
+    @Override
+    public void onLogUpdated(String message) {
+        appendLog(message);
+    }
+
+    @Override
+    public void onSimulationComplete(String report) {
+        Platform.runLater(() -> showSimulationReport(report));
     }
 }

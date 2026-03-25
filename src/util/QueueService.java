@@ -2,16 +2,12 @@ package util;
 
 import pos.model.Customer;
 import pos.model.ExistingOrder;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.*;
 
 public class QueueService {
 
     private static QueueService instance;
-    private final BlockingQueue<Customer> queue = new LinkedBlockingQueue<>();
+    private final Queue<Customer> queue = new LinkedList<>();
 
     private QueueService() {}
 
@@ -22,34 +18,55 @@ public class QueueService {
         return instance;
     }
 
-    public void addCustomer(Customer customer) {
+    public synchronized void addCustomer(Customer customer) {
         queue.offer(customer);
+        notifyAll();
     }
 
-    public Customer getNextCustomer() throws InterruptedException {
-        return queue.take();
+    public synchronized Customer getNextCustomer() throws InterruptedException {
+        while (queue.isEmpty()) {
+            wait();
+        }
+        return queue.poll();
     }
 
-    public boolean isEmpty() {
+    public synchronized boolean isEmpty() {
         return queue.isEmpty();
     }
 
-    public int getSize() {
+    public synchronized int getSize() {
         return queue.size();
     }
-    
-    public void clear() {
-        queue.clear();
-    }
-    
-    public List<Customer> getAllCustomers() {
+
+    public synchronized List<Customer> getAllCustomers() {
         return new ArrayList<>(queue);
     }
 
+    public synchronized void clear() {
+        queue.clear();
+    }
+
     public void loadFromOrders(List<ExistingOrder> orders) {
+        Map<String, List<String>> groupedOrders = new LinkedHashMap<>();
+
         for (ExistingOrder order : orders) {
-            List<String> itemIds = List.of(order.getItemIds().split(";"));
-            Customer customer = new Customer(order.getCustomerId(), itemIds);
+            String orderNo = order.getOrderNo();
+            String itemIds = order.getItemIds();
+
+            if (!groupedOrders.containsKey(orderNo)) {
+                groupedOrders.put(orderNo, new ArrayList<>());
+            }
+
+            for (String itemId : itemIds.split("[;,]")) {
+                String trimmed = itemId.trim();
+                if (!trimmed.isEmpty()) {
+                    groupedOrders.get(orderNo).add(trimmed);
+                }
+            }
+        }
+
+        for (Map.Entry<String, List<String>> entry : groupedOrders.entrySet()) {
+            Customer customer = new Customer(entry.getKey(), entry.getValue());
             addCustomer(customer);
         }
     }
