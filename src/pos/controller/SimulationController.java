@@ -22,8 +22,10 @@ public class SimulationController {
     private final List<StaffThread> staffRunnables = new ArrayList<>();
     private final List<SimulationObserver> observers = new ArrayList<>();
     private final ObservableList<Customer> queueItems;
+	private MainController mainController;
 
     public SimulationController(MainController mainController) {
+    	this.mainController = mainController;
         this.queueItems = mainController.getQueueItems();
         staffList.add(new Staff(1, "Staff 1"));
         staffList.add(new Staff(2, "Staff 2"));
@@ -119,5 +121,10 @@ public class SimulationController {
         String report = reportService.generateReport();
         notifyLogUpdated("Simulation complete!");
         notifySimulationComplete(report);
+        
+        // re-enable the button after simulation finishes
+        Platform.runLater(() -> mainController.enableStartButton());
     }
+
+    	
 }

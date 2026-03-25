@@ -17,6 +17,7 @@ import pos.model.ExistingOrder;
 
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -88,6 +89,11 @@ public class MainController implements util.SimulationObserver {
     private double totalRevenue = 0;
     private double totalDiscountGiven = 0;
     private int totalOrders = 0;
+    
+    public void enableStartButton() {
+        btnStartSimulation.setDisable(false);
+        statusLabel.setText("Simulation complete. Ready to run again.");
+    }
 
     @FXML
     public void initialize() {
@@ -148,7 +154,7 @@ public class MainController implements util.SimulationObserver {
         btnStartSimulation.setDisable(true);
 
         SimulationController simulationController = new SimulationController(this);
-        simulationController.startSimulation(pos.CoffeeApp.getExistingOrders());
+        simulationController.startSimulation(new ArrayList<>(existingOrders));
     }
 
     public void appendLog(String message) {
