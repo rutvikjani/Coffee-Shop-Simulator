@@ -10,69 +10,72 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import pos.model.Customer;
 import pos.model.MenuItem;
 import pos.model.OrderLine;
 import pos.model.ExistingOrder;
 
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
 public class MainController {
 
-	//Linking the functionality of UI
-	//Filter buttons
     @FXML private Button btnAll;
     @FXML private Button btnBeverages;
     @FXML private Button btnFood;
     @FXML private Button btnOther;
 
-    //Menu table
     @FXML private TableView<MenuItem> menuTable;
     @FXML private TableColumn<MenuItem, String> colMenuId;
     @FXML private TableColumn<MenuItem, String> colMenuName;
-    @FXML private TableColumn<MenuItem, String> colMenuDescription;
     @FXML private TableColumn<MenuItem, String> colMenuCategory;
     @FXML private TableColumn<MenuItem, Double> colMenuPrice;
 
-    //Order table
     @FXML private TableView<OrderLine> orderTable;
     @FXML private TableColumn<OrderLine, String> colOrderItem;
     @FXML private TableColumn<OrderLine, Integer> colOrderQty;
     @FXML private TableColumn<OrderLine, Double> colOrderLineTotal;
 
-    //Existing order table
     @FXML private TableView<ExistingOrder> existingOrdersTable;
     @FXML private TableColumn<ExistingOrder, String> colExistingOrderNo;
     @FXML private TableColumn<ExistingOrder, String> colExistingCustomerId;
     @FXML private TableColumn<ExistingOrder, String> colExistingTimestamp;
     @FXML private TableColumn<ExistingOrder, String> colExistingItemIds;
 
-    
-    @FXML private Button btnRemoveItem;
+    @FXML private TableView<Customer> queueTable;
+    @FXML private TableColumn<Customer, String> colQueueCustomerId;
+    @FXML private TableColumn<Customer, String> colQueueItems;
+    @FXML private TableColumn<Customer, String> colQueueStatus;
 
-    //Initializing the ordernumber and customer id to 1
-    private int nextCustomerId = 1;
-    private int nextOrderNo = 1;
+    @FXML private Label staff1Status;
+    @FXML private Label staff1Order;
+    @FXML private Label staff2Status;
+    @FXML private Label staff2Order;
+    @FXML private Label staff3Status;
+    @FXML private Label staff3Order;
+
+    @FXML private TextArea logArea;
+    @FXML private Button btnStartSimulation;
+    @FXML private Button btnRemoveItem;
 
     @FXML private TextField customerIdField;
     @FXML private Label subtotalLabel;
     @FXML private Label discountLabel;
     @FXML private Label totalLabel;
-
+    @FXML private Label discountBadge;
     @FXML private Button btnClearOrder;
     @FXML private Button btnConfirmOrder;
-
     @FXML private Label statusLabel;
-    @FXML private Label discountBadge;
 
-    // Observable list will handle the UI changes 
+    private int nextCustomerId = 1;
+    private int nextOrderNo = 1;
+
     private ObservableList<MenuItem> allMenuItems = FXCollections.observableArrayList();
     private ObservableList<OrderLine> currentOrderLines = FXCollections.observableArrayList();
     private ObservableList<ExistingOrder> existingOrders = FXCollections.observableArrayList();
+    private ObservableList<Customer> queueItems = FXCollections.observableArrayList();
 
     private String discountBreakdown = "";
     private double lastDiscount = 0;
@@ -80,46 +83,42 @@ public class MainController {
     private MenuItem freeBeverageSelected = null;
     private boolean freeBeverageClaimedThisOrder = false;
 
-    //Tracks the summary report
     private final Map<String, Integer> itemOrderCount = new TreeMap<>();
     private final Map<String, Double> itemRevenue = new TreeMap<>();
     private double totalRevenue = 0;
     private double totalDiscountGiven = 0;
     private int totalOrders = 0;
 
-    
     @FXML
     public void initialize() {
+        allMenuItems.setAll(pos.CoffeeApp.getMenuItems().values());
+        statusLabel.setText("Menu loaded from file.");
 
-    	//Loading menu items
-    	allMenuItems.setAll(pos.CoffeeApp.getMenuItems().values()); //Gets menu data from CoffeeApp and puts into observable list
-    	statusLabel.setText("Menu loaded from file.");
-    	
         menuTable.setItems(allMenuItems);
-        //Linking current order table to the observable list
         orderTable.setItems(currentOrderLines);
         existingOrdersTable.setItems(existingOrders);
-        existingOrders.setAll(pos.CoffeeApp.getExistingOrders()); //Gets existing orders data from CoffeeApp and puts into observable list
+        queueTable.setItems(queueItems);
+        existingOrders.setAll(pos.CoffeeApp.getExistingOrders());
 
-        //Setting the values of menu according to the columns
         colMenuId.setCellValueFactory(data -> data.getValue().idProperty());
         colMenuName.setCellValueFactory(data -> data.getValue().nameProperty());
-        colMenuDescription.setCellValueFactory(data -> data.getValue().descriptionProperty());
         colMenuCategory.setCellValueFactory(data -> data.getValue().categoryProperty());
         colMenuPrice.setCellValueFactory(data -> data.getValue().priceProperty().asObject());
 
-        //Setting the order items
         colOrderItem.setCellValueFactory(data -> data.getValue().itemNameProperty());
         colOrderQty.setCellValueFactory(data -> data.getValue().quantityProperty().asObject());
         colOrderLineTotal.setCellValueFactory(data -> data.getValue().lineTotalProperty().asObject());
 
-        //Setting the existing order items
         colExistingOrderNo.setCellValueFactory(data -> data.getValue().orderNoProperty());
         colExistingCustomerId.setCellValueFactory(data -> data.getValue().customerIdProperty());
         colExistingTimestamp.setCellValueFactory(data -> data.getValue().timestampProperty());
         colExistingItemIds.setCellValueFactory(data -> data.getValue().itemIdsProperty());
 
-        //Links to the button functionality
+        colQueueCustomerId.setCellValueFactory(data -> data.getValue().customerIdProperty());
+        colQueueItems.setCellValueFactory(data -> new javafx.beans.property.SimpleStringProperty(
+                String.join(", ", data.getValue().getItemIds())));
+        colQueueStatus.setCellValueFactory(data -> data.getValue().statusProperty());
+
         btnAll.setOnAction(e -> menuTable.setItems(allMenuItems));
         btnBeverages.setOnAction(e -> menuTable.setItems(allMenuItems.filtered(i -> i.getCategory().equalsIgnoreCase("BEV"))));
         btnFood.setOnAction(e -> menuTable.setItems(allMenuItems.filtered(i -> i.getCategory().equalsIgnoreCase("FOOD"))));
@@ -128,8 +127,8 @@ public class MainController {
         btnRemoveItem.setOnAction(e -> removeSelectedLine());
         btnClearOrder.setOnAction(e -> clearOrder());
         btnConfirmOrder.setOnAction(e -> confirmOrder());
+        btnStartSimulation.setOnAction(e -> startSimulation());
 
-        //User onclick event
         menuTable.setOnMouseClicked(event -> {
             if (event.getClickCount() == 1) {
                 MenuItem selected = menuTable.getSelectionModel().getSelectedItem();
@@ -143,7 +142,44 @@ public class MainController {
         discountBadge.setVisible(false);
     }
 
-    //Quantity window pop-up
+    private void startSimulation() {
+        logArea.appendText("Simulation started...\n");
+        statusLabel.setText("Simulation running...");
+        btnStartSimulation.setDisable(true);
+
+        SimulationController simulationController = new SimulationController(this);
+        simulationController.startSimulation(pos.CoffeeApp.getExistingOrders());
+    }
+
+    public void appendLog(String message) {
+        Platform.runLater(() -> logArea.appendText(message + "\n"));
+    }
+
+    public void updateStaffUI(int staffId, String status, String order) {
+        Platform.runLater(() -> {
+            if (staffId == 1) {
+                staff1Status.setText(status);
+                staff1Order.setText(order);
+                staff1Status.setStyle(status.equals("Idle") ?
+                        "-fx-text-fill: green;" : "-fx-text-fill: red;");
+            } else if (staffId == 2) {
+                staff2Status.setText(status);
+                staff2Order.setText(order);
+                staff2Status.setStyle(status.equals("Idle") ?
+                        "-fx-text-fill: green;" : "-fx-text-fill: red;");
+            } else if (staffId == 3) {
+                staff3Status.setText(status);
+                staff3Order.setText(order);
+                staff3Status.setStyle(status.equals("Idle") ?
+                        "-fx-text-fill: green;" : "-fx-text-fill: red;");
+            }
+        });
+    }
+
+    public ObservableList<Customer> getQueueItems() {
+        return queueItems;
+    }
+
     private void showQuantitySelector(MenuItem item) {
         Stage popup = new Stage();
         popup.initModality(Modality.APPLICATION_MODAL);
@@ -154,8 +190,7 @@ public class MainController {
 
         Label qtyLabel = new Label("1");
         qtyLabel.setStyle("-fx-font-size: 20px; -fx-font-weight: bold;");
-        
-        //Increasing decreasing logic on the pop-up window
+
         Button btnMinus = new Button("-");
         btnMinus.setStyle("-fx-font-size: 18px; -fx-font-weight: bold;");
         btnMinus.setOnAction(e -> {
@@ -169,7 +204,7 @@ public class MainController {
             int q = Integer.parseInt(qtyLabel.getText());
             qtyLabel.setText(String.valueOf(q + 1));
         });
-        
+
         HBox qtyBox = new HBox(10, btnMinus, qtyLabel, btnPlus);
         qtyBox.setStyle("-fx-alignment: center;");
 
@@ -187,10 +222,8 @@ public class MainController {
         popup.setScene(new Scene(layout, 250, 200));
         popup.showAndWait();
     }
-    
-    //Adding item to order
+
     private void addItemToOrder(MenuItem item, int qty) {
-    	//Checking if the order line has the current item already or not
         OrderLine existing = currentOrderLines.stream()
                 .filter(l -> l.getItem().equals(item))
                 .findFirst()
@@ -201,20 +234,15 @@ public class MainController {
         } else {
             existing.setQuantity(existing.getQuantity() + qty);
         }
-        
-        //Updates the bill
-        updateBill(); 
-    }
-
-    //Remove a particular item from order
-    private void removeSelectedLine() {
-        OrderLine line = orderTable.getSelectionModel().getSelectedItem();
-        if (line != null) currentOrderLines.remove(line);
-        //Update the bill
         updateBill();
     }
 
-    //Clear the order from billing table
+    private void removeSelectedLine() {
+        OrderLine line = orderTable.getSelectionModel().getSelectedItem();
+        if (line != null) currentOrderLines.remove(line);
+        updateBill();
+    }
+
     private void clearOrder() {
         currentOrderLines.clear();
         freeBeverageSelected = null;
@@ -223,25 +251,22 @@ public class MainController {
         statusLabel.setText("Order cleared.");
     }
 
-    //Confirm order function
     private void confirmOrder() {
         if (currentOrderLines.isEmpty()) {
             statusLabel.setText("Cannot confirm: order is empty.");
             return;
         }
-        
-        
+
         double subtotal = currentOrderLines.stream()
                 .mapToDouble(OrderLine::getLineTotal)
                 .sum();
 
         double total = subtotal - lastDiscount;
 
-        //Fetching the customer id and timestamps
         String customerId = customerIdField.getText();
-        String timestamp = java.time.LocalTime.now().format(java.time.format.DateTimeFormatter.ofPattern("HH:mm:ss"));
-        
-        //Writing one order per row if more than one order is made and write to csv
+        String timestamp = java.time.LocalTime.now()
+                .format(java.time.format.DateTimeFormatter.ofPattern("HH:mm:ss"));
+
         for (OrderLine line : currentOrderLines) {
             for (int i = 0; i < line.getQuantity(); i++) {
                 ExistingOrder eo = new ExistingOrder(
@@ -254,29 +279,23 @@ public class MainController {
                 writeOrderToCSV(eo);
             }
         }
-        
-        // Revenue calculator + Discount calculator
+
         totalRevenue += total;
         totalDiscountGiven += lastDiscount;
         totalOrders++;
-        
-        
+
         for (OrderLine line : currentOrderLines) {
             String id = line.getItem().getId();
             int qty = line.getQuantity();
             double lineTotal = line.getLineTotal();
-
             itemOrderCount.merge(id, qty, Integer::sum);
             itemRevenue.merge(id, lineTotal, Double::sum);
         }
 
-        
         statusLabel.setText("Order confirmed for customer " + customerId);
-
         nextOrderNo++;
         nextCustomerId++;
 
-        //Clean up function after order confirms
         currentOrderLines.clear();
         freeBeverageSelected = null;
         freeBeverageClaimedThisOrder = false;
@@ -284,9 +303,8 @@ public class MainController {
         customerIdField.setText(String.valueOf(nextCustomerId));
     }
 
-    //CSV writing logic
     private void writeOrderToCSV(ExistingOrder order) {
-        String fileName = "existing_orders.csv"; 
+        String fileName = "existing_orders.csv";
         try (FileWriter writer = new FileWriter(fileName, true)) {
             java.io.File file = new java.io.File(fileName);
             if (file.length() == 0) {
@@ -303,7 +321,6 @@ public class MainController {
         }
     }
 
-    //Discount pop-up function
     private void showDiscountPopup() {
         Stage popup = new Stage();
         popup.initModality(Modality.APPLICATION_MODAL);
@@ -321,8 +338,7 @@ public class MainController {
         popup.setScene(new Scene(layout, 380, 220));
         popup.showAndWait();
     }
-    
-    //Free beverage pop-up function
+
     private void showFreeBeveragePopup() {
         ObservableList<MenuItem> beverages = allMenuItems.filtered(
                 i -> i.getCategory().equalsIgnoreCase("BEV")
@@ -367,15 +383,12 @@ public class MainController {
         popup.showAndWait();
     }
 
-    //Update bill function
     private void updateBill() {
-
         double subtotal = currentOrderLines.stream()
                 .mapToDouble(OrderLine::getLineTotal)
                 .sum();
 
         int foodCount = 0;
-
         for (OrderLine line : currentOrderLines) {
             if (line.getItem().getCategory().equalsIgnoreCase("FOOD")) {
                 foodCount += line.getQuantity();
@@ -423,7 +436,6 @@ public class MainController {
 
         lastDiscount = discount;
         discountBreakdown = breakdown.toString();
-
         discountBadge.setVisible(discount > 0);
 
         if (discount > 0) {
@@ -431,7 +443,6 @@ public class MainController {
         }
     }
 
-    //Report showing function
     public void showSummaryReport() {
         StringBuilder sb = new StringBuilder();
         sb.append("Moonbucks Session Summary\n");
@@ -439,8 +450,8 @@ public class MainController {
         sb.append("Total Orders: ").append(totalOrders).append("\n");
         sb.append("Total Revenue: £").append(String.format("%.2f", totalRevenue)).append("\n");
         sb.append("Total Discount Given: £").append(String.format("%.2f", totalDiscountGiven)).append("\n\n");
-
         sb.append("Per-Item Summary:\n");
+
         for (MenuItem item : allMenuItems) {
             String id = item.getId();
             int count = itemOrderCount.getOrDefault(id, 0);
@@ -460,6 +471,28 @@ public class MainController {
         title.setStyle("-fx-font-size: 18px; -fx-font-weight: bold;");
 
         TextArea area = new TextArea(sb.toString());
+        area.setEditable(false);
+        area.setWrapText(true);
+
+        Button closeBtn = new Button("Close");
+        closeBtn.setOnAction(e -> popup.close());
+
+        VBox layout = new VBox(10, title, area, closeBtn);
+        layout.setStyle("-fx-padding: 15; -fx-alignment: center;");
+
+        popup.setScene(new Scene(layout, 500, 400));
+        popup.showAndWait();
+    }
+    
+    public void showSimulationReport(String report) {
+        Stage popup = new Stage();
+        popup.initModality(Modality.APPLICATION_MODAL);
+        popup.setTitle("Simulation Report");
+
+        Label title = new Label("Simulation Report");
+        title.setStyle("-fx-font-size: 18px; -fx-font-weight: bold;");
+
+        TextArea area = new TextArea(report);
         area.setEditable(false);
         area.setWrapText(true);
 
