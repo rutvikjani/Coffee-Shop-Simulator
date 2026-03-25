@@ -3,47 +3,52 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import javafx.geometry.Insets?>
-<?import javafx.scene.layout.Priority?>
 
 <BorderPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
             fx:controller="pos.controller.MainController">
 
     <top>
-        <HBox alignment="CENTER">
+        <HBox alignment="CENTER" spacing="20">
             <padding><Insets top="15" bottom="15"/></padding>
-            <children>
-                <Label text="Moonbucks Coffee"
-                       style="-fx-font-size: 28px; -fx-font-weight: bold;"/>
-            </children>
+            <Label text="Moonbucks Coffee"
+                   style="-fx-font-size: 28px; -fx-font-weight: bold;"/>
+            <Button fx:id="btnStartSimulation"
+                    text="Start Simulation"
+                    style="-fx-font-size: 14px; -fx-background-color: #4CAF50; -fx-text-fill: white; -fx-padding: 8 16; -fx-background-radius: 5;"/>
         </HBox>
     </top>
 
     <left>
-        <VBox spacing="10">
-            <padding><Insets top="0" right="10" bottom="10" left="10"/></padding>
+        <VBox spacing="10" prefWidth="350">
+            <padding><Insets top="10" right="10" bottom="10" left="10"/></padding>
 
-            <children>
-                <Label text="Menu Items" style="-fx-font-size: 14px; -fx-font-weight: bold;"/>
-                <HBox spacing="5">
-                    <children>
-                        <Button fx:id="btnAll" text="All"/>
-                        <Button fx:id="btnFood" text="Food"/>
-                        <Button fx:id="btnBeverages" text="Beverages"/>
-                        <Button fx:id="btnOther" text="Other"/>
-                    </children>
-                </HBox>
+            <Label text="Menu Items" style="-fx-font-size: 14px; -fx-font-weight: bold;"/>
+            <HBox spacing="5">
+                <Button fx:id="btnAll" text="All"/>
+                <Button fx:id="btnFood" text="Food"/>
+                <Button fx:id="btnBeverages" text="Beverages"/>
+                <Button fx:id="btnOther" text="Other"/>
+            </HBox>
 
-                <TableView fx:id="menuTable" prefWidth="530">
-                    <columns>
-                        <TableColumn fx:id="colMenuId" text="ID" prefWidth="80"/>
-                        <TableColumn fx:id="colMenuName" text="Name" prefWidth="140"/>
-                        <TableColumn fx:id="colMenuDescription" text="Description" prefWidth="180"/>
-                        <TableColumn fx:id="colMenuCategory" text="Category" prefWidth="80"/>
-                        <TableColumn fx:id="colMenuPrice" text="Price" prefWidth="80"/>
-                    </columns>
-                </TableView>
-            </children>
+            <TableView fx:id="menuTable" prefHeight="300" prefWidth="330">
+                <columns>
+                    <TableColumn fx:id="colMenuId" text="ID" prefWidth="80"/>
+                    <TableColumn fx:id="colMenuName" text="Name" prefWidth="100"/>
+                    <TableColumn fx:id="colMenuCategory" text="Category" prefWidth="70"/>
+                    <TableColumn fx:id="colMenuPrice" text="Price" prefWidth="70"/>
+                </columns>
+            </TableView>
+
+            <Separator/>
+
+            <Label text="Simulation Log" style="-fx-font-size: 14px; -fx-font-weight: bold;"/>
+            <TextArea fx:id="logArea"
+                      prefHeight="180"
+                      prefWidth="330"
+                      editable="false"
+                      wrapText="true"
+                      style="-fx-font-size: 11px; -fx-font-family: monospace;"/>
         </VBox>
     </left>
 
@@ -51,77 +56,96 @@
         <VBox spacing="10">
             <padding><Insets top="10" right="10" bottom="10" left="10"/></padding>
 
+            <Label text="Current Order" style="-fx-font-size: 14px; -fx-font-weight: bold;"/>
+            <TableView fx:id="orderTable" prefHeight="180" prefWidth="350">
+                <columns>
+                    <TableColumn fx:id="colOrderItem" text="Item" prefWidth="150"/>
+                    <TableColumn fx:id="colOrderQty" text="Qty" prefWidth="50"/>
+                    <TableColumn fx:id="colOrderLineTotal" text="Line Total" prefWidth="80"/>
+                </columns>
+            </TableView>
+            <Button fx:id="btnRemoveItem" text="Remove Selected Item"/>
+
+            <Separator/>
+
             <HBox spacing="20">
-                <children>
+                <VBox spacing="5" prefWidth="200">
+                    <Label text="Customer ID"/>
+                    <TextField fx:id="customerIdField"/>
+                    <Separator/>
+                    <Label text="Bill Summary" style="-fx-font-size: 14px; -fx-font-weight: bold;"/>
+                    <Label fx:id="subtotalLabel" text="Subtotal: £0.00"/>
+                    <Label fx:id="discountLabel" text="Discount: £0.00"/>
+                    <Label fx:id="totalLabel" text="Total: £0.00"/>
+                    <Label fx:id="discountBadge"
+                           text="Discount Applied"
+                           visible="false"
+                           style="-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-padding: 4 8; -fx-background-radius: 5;"/>
+                </VBox>
 
-                    <VBox spacing="10" prefWidth="350">
-                        <children>
-                            <Label text="Current Order" style="-fx-font-size: 14px; -fx-font-weight: bold;"/>
-
-                            <TableView fx:id="orderTable" prefHeight="200">
-                                <columns>
-                                    <TableColumn fx:id="colOrderItem" text="Item" prefWidth="150"/>
-                                    <TableColumn fx:id="colOrderQty" text="Qty" prefWidth="50"/>
-                                    <TableColumn fx:id="colOrderLineTotal" text="Line Total" prefWidth="80"/>
-                                </columns>
-                            </TableView>
-
-                            <Button fx:id="btnRemoveItem" text="Remove Selected Item"/>
-                        </children>
-                    </VBox>
-
-                    <VBox spacing="10" prefWidth="250">
-                        <children>
-                            <Label text="Customer ID"/>
-                            <TextField fx:id="customerIdField"/>
-
-                            <Separator/>
-
-                            <Label text="Bill Summary" style="-fx-font-size: 14px; -fx-font-weight: bold;"/>
-                            <Label fx:id="subtotalLabel" text="Subtotal: £0.00"/>
-                            <Label fx:id="discountLabel" text="Discount: £0.00"/>
-                            <Label fx:id="totalLabel" text="Total: £0.00"/>
-
-                            <Label fx:id="discountBadge"
-                                   text="Discount Applied"
-                                   visible="false"
-                                   style="-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-padding: 4 8; -fx-background-radius: 5;"/>
-
-                            <Separator/>
-
-                            <Button fx:id="btnClearOrder" text="Clear Order" maxWidth="Infinity"/>
-                            <Button fx:id="btnConfirmOrder" text="Confirm Order" maxWidth="Infinity"/>
-                        </children>
-                    </VBox>
-
-                </children>
+                <VBox spacing="5" prefWidth="130">
+                    <Button fx:id="btnClearOrder" text="Clear Order" maxWidth="Infinity"/>
+                    <Button fx:id="btnConfirmOrder" text="Confirm Order" maxWidth="Infinity"/>
+                </VBox>
             </HBox>
 
             <Separator/>
 
             <Label text="Existing Orders" style="-fx-font-size: 14px; -fx-font-weight: bold;"/>
-
-            <TableView fx:id="existingOrdersTable"
-                       prefHeight="300"
-                       maxWidth="Infinity"
-                       VBox.vgrow="ALWAYS">
+            <TableView fx:id="existingOrdersTable" prefHeight="150" prefWidth="350">
                 <columns>
                     <TableColumn fx:id="colExistingOrderNo" text="Order No" prefWidth="60"/>
                     <TableColumn fx:id="colExistingCustomerId" text="CID" prefWidth="60"/>
                     <TableColumn fx:id="colExistingTimestamp" text="Timestamp" prefWidth="80"/>
-                    <TableColumn fx:id="colExistingItemIds" text="Item IDs" prefWidth="220"/>
+                    <TableColumn fx:id="colExistingItemIds" text="Item IDs" prefWidth="140"/>
                 </columns>
             </TableView>
 
         </VBox>
     </center>
 
+    <right>
+        <VBox spacing="10" prefWidth="300">
+            <padding><Insets top="10" right="10" bottom="10" left="10"/></padding>
+
+            <Label text="Customer Queue" style="-fx-font-size: 14px; -fx-font-weight: bold;"/>
+            <TableView fx:id="queueTable" prefHeight="250" prefWidth="280">
+                <columns>
+                    <TableColumn fx:id="colQueueCustomerId" text="Customer ID" prefWidth="100"/>
+                    <TableColumn fx:id="colQueueItems" text="Items" prefWidth="120"/>
+                    <TableColumn fx:id="colQueueStatus" text="Status" prefWidth="80"/>
+                </columns>
+            </TableView>
+
+            <Separator/>
+
+            <Label text="Staff Status" style="-fx-font-size: 14px; -fx-font-weight: bold;"/>
+
+            <VBox spacing="5" style="-fx-border-color: #cccccc; -fx-border-radius: 5; -fx-padding: 8;">
+                <Label text="Staff 1" style="-fx-font-weight: bold;"/>
+                <Label fx:id="staff1Status" text="Idle" style="-fx-text-fill: green;"/>
+                <Label fx:id="staff1Order" text="No order"/>
+            </VBox>
+
+            <VBox spacing="5" style="-fx-border-color: #cccccc; -fx-border-radius: 5; -fx-padding: 8;">
+                <Label text="Staff 2" style="-fx-font-weight: bold;"/>
+                <Label fx:id="staff2Status" text="Idle" style="-fx-text-fill: green;"/>
+                <Label fx:id="staff2Order" text="No order"/>
+            </VBox>
+
+            <VBox spacing="5" style="-fx-border-color: #cccccc; -fx-border-radius: 5; -fx-padding: 8;">
+                <Label text="Staff 3" style="-fx-font-weight: bold;"/>
+                <Label fx:id="staff3Status" text="Idle" style="-fx-text-fill: green;"/>
+                <Label fx:id="staff3Order" text="No order"/>
+            </VBox>
+
+        </VBox>
+    </right>
+
     <bottom>
         <HBox>
             <padding><Insets top="10" right="10" bottom="10" left="10"/></padding>
-            <children>
-                <Label fx:id="statusLabel" text="Ready"/>
-            </children>
+            <Label fx:id="statusLabel" text="Ready"/>
         </HBox>
     </bottom>
 
