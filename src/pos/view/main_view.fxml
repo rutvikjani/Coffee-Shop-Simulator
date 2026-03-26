@@ -22,7 +22,6 @@
     <left>
         <VBox spacing="10" prefWidth="350">
             <padding><Insets top="10" right="10" bottom="10" left="10"/></padding>
-
             <Label text="Menu Items" style="-fx-font-size: 14px; -fx-font-weight: bold;"/>
             <HBox spacing="5">
                 <Button fx:id="btnAll" text="All"/>
@@ -30,7 +29,6 @@
                 <Button fx:id="btnBeverages" text="Beverages"/>
                 <Button fx:id="btnOther" text="Other"/>
             </HBox>
-
             <TableView fx:id="menuTable" prefHeight="300" prefWidth="330">
                 <columns>
                     <TableColumn fx:id="colMenuId" text="ID" prefWidth="80"/>
@@ -39,9 +37,7 @@
                     <TableColumn fx:id="colMenuPrice" text="Price" prefWidth="70"/>
                 </columns>
             </TableView>
-
             <Separator/>
-
             <Label text="Simulation Log" style="-fx-font-size: 14px; -fx-font-weight: bold;"/>
             <TextArea fx:id="logArea"
                       prefHeight="180"
@@ -55,7 +51,6 @@
     <center>
         <VBox spacing="10">
             <padding><Insets top="10" right="10" bottom="10" left="10"/></padding>
-
             <Label text="Current Order" style="-fx-font-size: 14px; -fx-font-weight: bold;"/>
             <TableView fx:id="orderTable" prefHeight="180" prefWidth="350">
                 <columns>
@@ -65,9 +60,7 @@
                 </columns>
             </TableView>
             <Button fx:id="btnRemoveItem" text="Remove Selected Item"/>
-
             <Separator/>
-
             <HBox spacing="20">
                 <VBox spacing="5" prefWidth="200">
                     <Label text="Customer ID"/>
@@ -82,15 +75,12 @@
                            visible="false"
                            style="-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-padding: 4 8; -fx-background-radius: 5;"/>
                 </VBox>
-
                 <VBox spacing="5" prefWidth="130">
                     <Button fx:id="btnClearOrder" text="Clear Order" maxWidth="Infinity"/>
                     <Button fx:id="btnConfirmOrder" text="Confirm Order" maxWidth="Infinity"/>
                 </VBox>
             </HBox>
-
             <Separator/>
-
             <Label text="Existing Orders" style="-fx-font-size: 14px; -fx-font-weight: bold;"/>
             <TableView fx:id="existingOrdersTable" prefHeight="150" prefWidth="350">
                 <columns>
@@ -100,45 +90,55 @@
                     <TableColumn fx:id="colExistingItemIds" text="Item IDs" prefWidth="140"/>
                 </columns>
             </TableView>
-
         </VBox>
     </center>
 
     <right>
         <VBox spacing="10" prefWidth="300">
             <padding><Insets top="10" right="10" bottom="10" left="10"/></padding>
-
             <Label text="Customer Queue" style="-fx-font-size: 14px; -fx-font-weight: bold;"/>
-            <TableView fx:id="queueTable" prefHeight="250" prefWidth="280">
+            <TableView fx:id="queueTable" prefHeight="200" prefWidth="280">
                 <columns>
                     <TableColumn fx:id="colQueueCustomerId" text="Customer ID" prefWidth="100"/>
                     <TableColumn fx:id="colQueueItems" text="Items" prefWidth="120"/>
                     <TableColumn fx:id="colQueueStatus" text="Status" prefWidth="80"/>
                 </columns>
             </TableView>
-
             <Separator/>
-
+            <VBox spacing="5" style="-fx-border-color: #cccccc; -fx-border-radius: 5; -fx-padding: 8;">
+                <Label text="Simulation Speed" style="-fx-font-weight: bold;"/>
+                <HBox spacing="10" alignment="CENTER_LEFT">
+                    <Label text="Slow"/>
+                    <Slider fx:id="speedSlider"
+                            min="1" max="5" value="3"
+                            showTickLabels="true"
+                            showTickMarks="true"
+                            snapToTicks="true"
+                            majorTickUnit="1"
+                            minorTickCount="0"
+                            prefWidth="160"/>
+                    <Label text="Fast"/>
+                </HBox>
+                <Label fx:id="speedLabel" text="Speed: Normal"
+                       style="-fx-text-fill: #555555; -fx-font-size: 11px;"/>
+            </VBox>
+            <Separator/>
             <Label text="Staff Status" style="-fx-font-size: 14px; -fx-font-weight: bold;"/>
-
             <VBox spacing="5" style="-fx-border-color: #cccccc; -fx-border-radius: 5; -fx-padding: 8;">
                 <Label text="Staff 1" style="-fx-font-weight: bold;"/>
                 <Label fx:id="staff1Status" text="Idle" style="-fx-text-fill: green;"/>
                 <Label fx:id="staff1Order" text="No order"/>
             </VBox>
-
             <VBox spacing="5" style="-fx-border-color: #cccccc; -fx-border-radius: 5; -fx-padding: 8;">
                 <Label text="Staff 2" style="-fx-font-weight: bold;"/>
                 <Label fx:id="staff2Status" text="Idle" style="-fx-text-fill: green;"/>
                 <Label fx:id="staff2Order" text="No order"/>
             </VBox>
-
             <VBox spacing="5" style="-fx-border-color: #cccccc; -fx-border-radius: 5; -fx-padding: 8;">
                 <Label text="Staff 3" style="-fx-font-weight: bold;"/>
                 <Label fx:id="staff3Status" text="Idle" style="-fx-text-fill: green;"/>
                 <Label fx:id="staff3Order" text="No order"/>
             </VBox>
-
         </VBox>
     </right>
 
