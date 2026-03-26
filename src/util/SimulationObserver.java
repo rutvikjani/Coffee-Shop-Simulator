@@ -5,4 +5,5 @@ public interface SimulationObserver {
     void onQueueUpdated();
     void onLogUpdated(String message);
     void onSimulationComplete(String report);
+    void onSimulationReset(); 
 }
