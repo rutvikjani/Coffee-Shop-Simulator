@@ -144,4 +144,21 @@ public class SimulationTest {
         Customer c = new Customer("1", items);
         assertEquals(2, c.getItemIds().size(), "Customer should have 2 items");
     }
+    
+    @Test
+    void testCustomerAdderThreadAddsToQueue() throws InterruptedException {
+        QueueService q = QueueService.getInstance();
+        q.clear();
+        List<Customer> customers = Arrays.asList(
+            new Customer("1", Arrays.asList("BEV-001")),
+            new Customer("2", Arrays.asList("FOOD-001"))
+        );
+        util.CustomerAdderThread adder = new util.CustomerAdderThread(
+            customers, q, LoggerService.getInstance(), 100, () -> {}
+        );
+        Thread t = new Thread(adder);
+        t.start();
+        t.join(2000);
+        assertEquals(2, q.getSize(), "Queue should have 2 customers after adder finishes");
+    }
 }
