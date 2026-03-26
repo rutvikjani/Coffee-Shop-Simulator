@@ -27,6 +27,8 @@ public class MainController implements util.SimulationObserver {
     @FXML private Button btnBeverages;
     @FXML private Button btnFood;
     @FXML private Button btnOther;
+    @FXML private Slider speedSlider;
+    @FXML private Label speedLabel;
 
     @FXML private TableView<MenuItem> menuTable;
     @FXML private TableColumn<MenuItem, String> colMenuId;
@@ -134,6 +136,12 @@ public class MainController implements util.SimulationObserver {
         btnClearOrder.setOnAction(e -> clearOrder());
         btnConfirmOrder.setOnAction(e -> confirmOrder());
         btnStartSimulation.setOnAction(e -> startSimulation());
+        
+        speedSlider.valueProperty().addListener((obs, oldVal, newVal) -> {
+            int speed = newVal.intValue();
+            String[] labels = {"", "Very Slow", "Slow", "Normal", "Fast", "Very Fast"};
+            speedLabel.setText("Speed: " + labels[speed]);
+        });
 
         menuTable.setOnMouseClicked(event -> {
             if (event.getClickCount() == 1) {
@@ -489,6 +497,18 @@ public class MainController implements util.SimulationObserver {
         popup.setScene(new Scene(layout, 500, 400));
         popup.showAndWait();
     }
+    
+    public int getSimulationDelay() {
+        int speed = (int) speedSlider.getValue();
+        switch (speed) {
+            case 1: return 4000;  
+            case 2: return 3000;  
+            case 3: return 2000;  
+            case 4: return 1000;  
+            case 5: return 500;   
+            default: return 2000;
+        }
+    }
 
     public void showSimulationReport(String report) {
         Stage popup = new Stage();
@@ -521,7 +541,15 @@ public class MainController implements util.SimulationObserver {
     public void onQueueUpdated() {
         // queue table updates automatically via ObservableList binding
     }
-
+    
+    @Override
+    public void onSimulationReset() {
+        Platform.runLater(() -> {
+            btnStartSimulation.setDisable(false);
+            statusLabel.setText("Simulation complete. Ready to run again.");
+        });
+    }
+    
     @Override
     public void onLogUpdated(String message) {
         appendLog(message);
