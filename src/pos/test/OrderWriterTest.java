@@ -71,4 +71,18 @@ public class OrderWriterTest {
         boolean found = orders.stream().anyMatch(o -> o.getOrderNo().equals("95"));
         assertTrue(found, "Order number 95 should exist in CSV");
     }
+    
+    @Test
+    public void testWrittenOrderWithMultipleItems() throws Exception {
+        FileWriter writer = new FileWriter("existing_orders.csv", true);
+        writer.write("100,100,13:00:00,\"BEV-001,FOOD-002\"\n");
+        writer.close();
+
+        List<ExistingOrder> orders = OrderLoader.loadOrders();
+        ExistingOrder found = orders.stream()
+                .filter(o -> o.getOrderNo().equals("100"))
+                .findFirst().orElse(null);
+        assertNotNull(found, "Order with multiple items should be found");
+        assertTrue(found.getItemIds().contains("BEV-001"), "Should contain BEV-001");
+    }
 }
