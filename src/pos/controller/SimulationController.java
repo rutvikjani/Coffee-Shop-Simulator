@@ -4,6 +4,7 @@ import javafx.application.Platform;
 import javafx.collections.ObservableList;
 import pos.model.Customer;
 import pos.model.Staff;
+import util.CustomerAdderThread;
 import util.LoggerService;
 import util.QueueService;
 import util.ReportService;
@@ -22,15 +23,15 @@ public class SimulationController {
     private final List<StaffThread> staffRunnables = new ArrayList<>();
     private final List<SimulationObserver> observers = new ArrayList<>();
     private final ObservableList<Customer> queueItems;
-	private MainController mainController;
+    private MainController mainController;
+    private CustomerAdderThread customerAdderThread;
 
     public SimulationController(MainController mainController) {
-    	this.mainController = mainController;
+        this.mainController = mainController;
         this.queueItems = mainController.getQueueItems();
         staffList.add(new Staff(1, "Staff 1"));
         staffList.add(new Staff(2, "Staff 2"));
         staffList.add(new Staff(3, "Staff 3"));
-
         registerObserver(mainController);
     }
 
@@ -45,6 +46,12 @@ public class SimulationController {
     private void notifyStaffUpdated(int staffId, String status, String order) {
         for (SimulationObserver o : observers) {
             o.onStaffUpdated(staffId, status, order);
+        }
+    }
+
+    private void notifySimulationReset() {
+        for (SimulationObserver o : observers) {
+            o.onSimulationReset();
         }
     }
 
@@ -67,12 +74,26 @@ public class SimulationController {
     }
 
     public void startSimulation(List<pos.model.ExistingOrder> orders) {
-        queueService.loadFromOrders(orders);
-        Platform.runLater(() -> queueItems.setAll(queueService.getAllCustomers()));
 
-        String startMsg = "Simulation started with " + orders.size() + " orders";
+        List<Customer> customers = buildCustomerList(orders);
+
+        String startMsg = "Simulation started with " + customers.size() + " customers";
         logger.log(startMsg);
         notifyLogUpdated(startMsg);
+
+        customerAdderThread = new CustomerAdderThread(
+            customers,
+            queueService,
+            logger,
+            mainController.getSimulationDelay(), // uses speed slider value
+            () -> {
+                Platform.runLater(() -> queueItems.setAll(queueService.getAllCustomers()));
+                notifyQueueUpdated();
+            }
+        );
+        Thread adderThread = new Thread(customerAdderThread);
+        adderThread.setDaemon(true);
+        adderThread.start();
 
         for (Staff staff : staffList) {
             StaffThread staffRunnable = new StaffThread(
@@ -83,7 +104,8 @@ public class SimulationController {
                 () -> {
                     notifyStaffUpdated(staff.getStaffId(), staff.getStatus(), staff.getCurrentOrder());
                     Platform.runLater(() -> queueItems.setAll(queueService.getAllCustomers()));
-                    notifyLogUpdated(staff.getName() + " → " + staff.getStatus() + " → " + staff.getCurrentOrder());
+                    notifyLogUpdated(staff.getName() + " → " + staff.getStatus()
+                            + " → " + staff.getCurrentOrder());
                 }
             );
             staffRunnables.add(staffRunnable);
@@ -94,6 +116,13 @@ public class SimulationController {
         }
 
         Thread monitorThread = new Thread(() -> {
+            try {
+                adderThread.join();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                return;
+            }
+
             while (true) {
                 try {
                     Thread.sleep(1000);
@@ -113,7 +142,25 @@ public class SimulationController {
         monitorThread.start();
     }
 
+    private List<Customer> buildCustomerList(List<pos.model.ExistingOrder> orders) {
+        java.util.Map<String, java.util.List<String>> grouped = new java.util.LinkedHashMap<>();
+        for (pos.model.ExistingOrder order : orders) {
+            String orderNo = order.getOrderNo();
+            grouped.putIfAbsent(orderNo, new java.util.ArrayList<>());
+            for (String itemId : order.getItemIds().split("[;,]")) {
+                String trimmed = itemId.trim();
+                if (!trimmed.isEmpty()) grouped.get(orderNo).add(trimmed);
+            }
+        }
+        List<Customer> customers = new java.util.ArrayList<>();
+        for (java.util.Map.Entry<String, java.util.List<String>> entry : grouped.entrySet()) {
+            customers.add(new Customer(entry.getKey(), entry.getValue()));
+        }
+        return customers;
+    }
+
     public void stopSimulation() {
+        if (customerAdderThread != null) customerAdderThread.stop();
         for (StaffThread staffRunnable : staffRunnables) {
             staffRunnable.stop();
         }
@@ -121,10 +168,16 @@ public class SimulationController {
         String report = reportService.generateReport();
         notifyLogUpdated("Simulation complete!");
         notifySimulationComplete(report);
-        
-        // re-enable the button after simulation finishes
-        Platform.runLater(() -> mainController.enableStartButton());
-    }
+        notifySimulationReset();
 
-    	
+        // auto exit after 5 seconds
+        new Thread(() -> {
+            try {
+                Thread.sleep(5000);
+                Platform.exit();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        }).start();
+    }
 }
